@@ -34,10 +34,6 @@ public class SecurityConfig {
 			
 	    @Bean
 		public UserDetailsService userDetailsService() {
-//			UserDetails admin = User.withUsername("Reynald")
-//					.password(encoder.encode("rey"))
-//					.roles("ADMIN").build();			
-//			return new InMemoryUserDetailsManager(admin, null);
 	    	return new JwtUserDetailsService();
 		}
 	
@@ -57,10 +53,8 @@ public class SecurityConfig {
  	    
  	    @Bean
  	    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
- 	    	 	    return http.csrf().disable()
- 	    			.authorizeHttpRequests().requestMatchers("/**","/api/v1/auth/**",
- 	    					"/api/v1/users/**","/api/v1/products/**","/images/**","/products/**","/qrcodes/**",
- 	    					"/v3/api-docs/**", "/swagger-ui/**")
+ 	    			return http.csrf().disable()
+ 	    			.authorizeHttpRequests().requestMatchers("/**")
  	    			.permitAll()
  	    			.anyRequest()
  	    			.authenticated()
@@ -68,8 +62,12 @@ public class SecurityConfig {
  	                .sessionManagement()
  	                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) 	                
  	                .and()
+ 	                .logout()
+ 	                .logoutSuccessUrl("/logout")               
+ 	                .and()
  	                .authenticationProvider(authenticationProvider())
- 	                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class).build();
+ 	                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+ 	                .build();
  	    }
  	     	     	   
  	   @Bean

@@ -6,12 +6,12 @@ import Register from '../register';
 export default function Header() {
     let username = sessionStorage.getItem('USERNAME');
 
-    const logout = (e: any) => {
+    const logout =  (e: any) => {
         sessionStorage.removeItem('USERID');
         sessionStorage.removeItem('USERNAME');
         sessionStorage.removeItem('TOKEN');
-        sessionStorage.removeItem('USERPIC');        
-        window.location.href = "/";
+        sessionStorage.removeItem('USERPIC');    
+        window.location.href = "http://localhost:8085/api/v1/auth/logout";
     }
 
     return (

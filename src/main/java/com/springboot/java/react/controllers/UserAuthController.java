@@ -1,50 +1,33 @@
 package com.springboot.java.react.controllers;
 
 import java.util.Optional;
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Map;
-
 import org.apache.commons.codec.binary.Base32;
-
 import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-//import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.springboot.java.react.entities.Users;
 import com.springboot.java.react.models.UserModel;
 import com.springboot.java.react.models.dto.UserDto;
 import com.springboot.java.react.services.JwtService;
-//import com.springboot.java.react.services.JwtService;
 import com.springboot.java.react.services.JwtUserDetailsService;
-//import com.springboot.java.react.services.JwtUtils;
-//import com.springboot.java.react.models.JwtResponse;
-//import com.springboot.java.react.services.JwtUserDetailsService;
 import com.springboot.java.react.services.UserService;
-//import com.springboot.java.react.utils.ApiError;
-
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-//import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-//import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-
-//import com.springboot.java.react.config.JwtTokenUtil;
-//import com.springboot.java.react.models.JwtRequest;
 import com.springboot.java.react.models.LoginModel;
 
 @RestController
@@ -148,9 +131,9 @@ public class UserAuthController {
   }	
     
   @GetMapping(path = "/logout")
-  public String logout(HttpServletRequest req) {
+  public void logout(HttpServletRequest req, HttpServletResponse response) throws IOException {
 	  req.getSession().invalidate();
-	  return "redirect:/";
+	  response.sendRedirect("/"); 
   }	
   
 	public String GenerateSecretKey() {
