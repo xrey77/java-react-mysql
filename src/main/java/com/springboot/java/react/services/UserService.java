@@ -1,7 +1,6 @@
 package com.springboot.java.react.services;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
@@ -10,8 +9,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.springboot.java.react.entities.Role;
 import com.springboot.java.react.entities.Users;
 import com.springboot.java.react.models.dto.*;
+import com.springboot.java.react.repositories.RoleRepository;
 import com.springboot.java.react.repositories.UserRepository;
 
 @Service
@@ -20,6 +21,9 @@ public class UserService {
 
 	@Autowired
     private UserRepository userRepository;
+	
+	@Autowired
+	private RoleRepository roleRepository;
 	
     @Autowired
     private ModelMapper modelMapper;
@@ -43,7 +47,12 @@ public class UserService {
         
     public UserDto addUser(UserDto userDto) {    	
     	userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        userDto.setRoles("ROLE_USER");
+
+        Role role = roleRepository.findByName("ROLE_USER");
+        if(role == null){
+            role = checkRoleExist();
+        }
+        userDto.setRoles(Arrays.asList(role));    	
         userDto.setPicture("http://localhost:8085/images/user.jpg");
     	Users user = mapToEntity(userDto);
     	Users newUser = userRepository.save(user);
@@ -98,6 +107,15 @@ public class UserService {
     	Users users = modelMapper.map(userDto, Users.class);
     	return users;
     }
-
     
+//    public Optional<Role> getUserRoles(int id){
+//    	Optional<Role> role = roleRepository.getUserrolename(id);
+//    	   return role;
+//    	}    
+
+    private Role checkRoleExist(){
+        Role role = new Role();
+        role.setName("ROLE_USER");
+        return roleRepository.save(role);
+    }    
 }

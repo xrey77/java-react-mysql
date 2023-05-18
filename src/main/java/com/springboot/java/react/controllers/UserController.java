@@ -1,11 +1,5 @@
 package com.springboot.java.react.controllers;
 
-import dev.samstevens.totp.time.TimeProvider;
-import dev.samstevens.totp.time.SystemTimeProvider;
-import dev.samstevens.totp.code.CodeGenerator;
-import dev.samstevens.totp.code.DefaultCodeGenerator;
-import dev.samstevens.totp.code.CodeVerifier;
-import dev.samstevens.totp.code.DefaultCodeVerifier;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.sql.Timestamp;
@@ -16,7 +10,6 @@ import java.io.*;
 import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,9 +27,10 @@ import com.springboot.java.react.models.dto.UserDto;
 import com.springboot.java.react.services.FilesStorageService;
 import com.springboot.java.react.services.JwtService;
 import com.springboot.java.react.services.UserService;
+
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import com.springboot.java.react.utils.ApiError;
 import de.taimos.totp.TOTP;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -66,61 +60,10 @@ public class UserController {
 
     @Autowired
     private JavaMailSender javaMailSender;
-        
+            
 	@GetMapping(path="/getall")
-    public ResponseEntity<?> list(HttpServletRequest req) {
-		ApiError apiError = new ApiError();
-		String uname = (String) req.getSession().getAttribute("USERNAME");
-		try {
-			String authHeader = req.getHeader("Authorization");
-			String token = null;
-			String username = null;
-			if (authHeader != null && authHeader.startsWith("Bearer ")) {
-				
-//				EXTRACT JWT
-				token = authHeader.substring(7);
-				
-//				EXTRACT USERNAME FROM JWT
-				username = jwtService.extractUsername(token);
-				
-//				CHECK IF USERNAME EXISTS
-				if(username == null) {
-			  		  apiError.setStatuscode("403");
-			  		  apiError.setMessage("Forbidden Access.");				
-			  		  return ResponseEntity.status(403).body(apiError);								
-				}
-
-//				CHECK IF EXTRACTED USERNAME IS EQUAL WITH THE USERNAME PARAMS
-				if(!username.equals(uname)) {
-			  		  apiError.setStatuscode("401");
-			  		  apiError.setMessage("UnAuthorized Access.");				
-			  		  return ResponseEntity.status(401).body(apiError);					
-				}
-				
-			}
-			
-//			CHECKK IF JWT AUTHORIZATION IS EMPTY
-			if (authHeader == null) {
-		  		  apiError.setStatuscode("403");
-		  		  apiError.setMessage("Forbidden Access.");				
-		  		  return ResponseEntity.status(403).body(apiError);			
-			}
-						
-//			LIST USERS
-			List<UserDto> users = userService.listAllUsers();
-	        return ResponseEntity.status(200).body(users);
-	        
-		} catch(Exception ex) {
-			
-	  		  apiError.setStatuscode("500");
-	  		  apiError.setMessage("Internal Server Error.");				
-	  		  return ResponseEntity.status(500).body(apiError);						
-		}	        
-    }
-
-	@GetMapping(path = "/getuserbyid/{id}")
-//***	@PreAuthorize("hasAuthority('ROLE_USER')")	
-    public Map<String, Object> getuser(@PathVariable Integer id, HttpServletRequest req) {
+	@RolesAllowed("ROLE_ADMIN")		
+    public Map<String, Object> list(HttpServletRequest req) {
 		String uname = (String) req.getSession().getAttribute("USERNAME");
 		
 		try {
@@ -137,6 +80,54 @@ public class UserController {
 				
 //				CHECK IF USERNAME EXISTS
 				if(username == null) {
+					return Map.of("statuscode", 403, "message", "Forbidden Access.");					
+				}
+
+//				CHECK IF EXTRACTED USERNAME IS EQUAL WITH THE USERNAME PARAMS
+				if(!username.equals(uname)) {
+					return Map.of("statuscode", 401, "message", "UnAuthorized Access.");					
+				}				
+			}
+			
+//			CHECKK IF JWT AUTHORIZATION IS EMPTY
+			if (authHeader == null) {
+				return Map.of("statuscode", 403, "message", "Forbidden Access.");				
+			}    
+						
+//			LIST USERS
+			List<UserDto> users = userService.listAllUsers();
+			return Map.of("statuscode", 200, "users", users);			
+	        
+		} catch(Exception ex) {
+			return Map.of("statuscode", 500, "message", "Internal Server Error.");			
+		}	        
+    }
+
+//	@PreAuthorize(value="hasRole('ADMIN')")
+//	@RolesAllowed("WRITE")
+//    @PreAuthorize("hasPermission("WRITE")
+//	@PreAuthorize(value="hasAuthority('ADMIN')")
+	@RolesAllowed("ROLE_ADMIN")		
+	@GetMapping(path = "/getuserbyid/{id}")
+    public Map<String, Object> getuser(@PathVariable Integer id, HttpServletRequest req) {
+	  try {
+		String uname = (String) req.getSession().getAttribute("USERNAME");		
+		try {
+			String authHeader = req.getHeader("Authorization");
+			String token = null;
+			String username = null;
+
+			if (authHeader != null && authHeader.startsWith("Bearer ")) {
+				
+//				EXTRACT JWT
+				token = authHeader.substring(7);
+				
+//				EXTRACT USERNAME FROM JWT
+				username = jwtService.extractUsername(token);
+				System.out.println("TOKEN : " + username);
+				
+//				CHECK IF USERNAME EXISTS
+				if(username == null) {
 		  		    return Map.of("statuscode", 403, "message", "Forbidden Access.");
 				}
 				
@@ -148,7 +139,7 @@ public class UserController {
 			}
 			
 //			CHECKK IF JWT AUTHORIZATION IS EMPTY
-			if (authHeader == null) {
+			else if (authHeader == null) {
 	  		    return Map.of("statuscode", 403, "message", "Forbidden Access.");
 			}
 			
@@ -165,9 +156,14 @@ public class UserController {
 		{
   		    return Map.of("statuscode", 404, "message", "User not found.");
 		}
+
+	  }catch(Exception ex) {
+		    return Map.of("statuscode", 404, "message", ex.getMessage());		  
+	  }
     }	
 	
     @PutMapping(path="/updateuserpassword/{id}")	
+	@RolesAllowed("ROLE_USER")	    
     public Map<String, Object> updateuser(@RequestBody UserDto user, HttpServletRequest req, @PathVariable Integer id) {
 		String uname = (String) req.getSession().getAttribute("USERNAME");
 		Calendar cal = Calendar.getInstance();
@@ -222,8 +218,8 @@ public class UserController {
     }	
 	
     @DeleteMapping("/deleteuser/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id, HttpServletRequest req) {
-		ApiError apiError = new ApiError();
+	@RolesAllowed("ROLE_ADMIN")	    
+    public Map<String, Object> delete(@PathVariable Integer id, HttpServletRequest req) {
 		String uname = (String) req.getSession().getAttribute("USERNAME");
 		try {
 			String authHeader = req.getHeader("Authorization");
@@ -239,40 +235,31 @@ public class UserController {
 				
 //				CHECK IF USERNAME EXISTS
 				if(username == null) {
-			  		  apiError.setStatuscode("403");
-			  		  apiError.setMessage("Forbidden Access.");				
-			  		  return ResponseEntity.status(403).body(apiError);								
+					return Map.of("statuscode", 403, "message", "Forbidden Access.");						
 				}				
 				
 				if(!username.equals(uname)) {
-			  		  apiError.setStatuscode("401");
-			  		  apiError.setMessage("UnAuthorized Access.");				
-			  		  return ResponseEntity.status(401).body(apiError);				
+					return Map.of("statuscode", 401, "message", "UnAuthorized Access.");						
 				}
 				
 			}
 			
 //			CHECKK IF JWT AUTHORIZATION IS EMPTY
 			if (authHeader == null) {
-		  		  apiError.setStatuscode("403");
-		  		  apiError.setMessage("Forbidden Access.");				
-		  		  return ResponseEntity.status(403).body(apiError);			
+				return Map.of("statuscode", 403, "message", "Forbidden Access.");					
 			}
 						
 		} catch(Exception ex) {
-			
-	  		  apiError.setStatuscode("500");
-	  		  apiError.setMessage("Internal Server Error.");				
-	  		  return ResponseEntity.status(500).body(apiError);						
+			return Map.of("statuscode", 500, "message", "Internal Server Error.");		
 		}
 		
 		try {
 			userService.deleteUser(id);
-			return ResponseEntity.status(200).body("Successfully deleted.");
+			return Map.of("statuscode", 200, "message", "Successfully deleted.");				
 		}
 		catch(Exception ex) {
 			ex.getStackTrace();
-	        return ResponseEntity.status(404).body("User not found.");
+			return Map.of("statuscode", 404, "message", "User not found.");				
 		}
 	}
 
@@ -285,7 +272,8 @@ public class UserController {
     }	
 	
     @PutMapping(path="/uploaduserpicture/{id}")
-    public ResponseEntity<?> uploadpicture(@RequestParam("userpic") MultipartFile file, @PathVariable Integer id) throws IOException  {
+	@RolesAllowed("ROLE_USER")	    
+    public Map<String, Object> uploadpicture(@RequestParam("userpic") MultipartFile file, @PathVariable Integer id) throws IOException  {
 
 	    try {
 	    	String newfile= "00" + id.toString() + ".jpeg";	    	
@@ -300,11 +288,7 @@ public class UserController {
 	      } catch (Exception e) {
 	    	  System.out.println("May Error : " + e.getMessage());
 	      }		
-		ApiError apiError = new ApiError();
-		apiError.setStatuscode("200");
-		apiError.setMessage("ok.");				
-		return ResponseEntity.status(200).body(apiError);			
-		
+	    return Map.of("statuscode", 200, "message", "New picture uploaded successfully.");			
 	}	 		
 	
 // **	http://localhost:8085/api/v1/users/enabletotp/1	
@@ -313,6 +297,7 @@ public class UserController {
 // **	    "isactivated": "0"
 // **	}	
     @PutMapping(path="/activateotp/{id}")
+	@RolesAllowed("ROLE_USER")	    
     public Map<String, Object> enableAuthenticator(@RequestBody UserDto user, @PathVariable Integer id) {
 		try {
 			UserDto eUser = userService.getUser(id);
@@ -373,24 +358,4 @@ public class UserController {
 	    return TOTP.getOTP(hexKey);
 	}	
         		  				
-    @PutMapping(path="/validateotpcode/{id}/{otp}")	
-	public Map<String, Object> validateTotp(@PathVariable Integer id, @PathVariable String otp) {
-    	try {
-    	TimeProvider timeProvider = new SystemTimeProvider();
-		CodeGenerator codeGenerator = new DefaultCodeGenerator();
-		CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
-		UserDto user = userService.getUser(id);
-        if (user != null) {
-    		String secret=user.getSecretkey();
-    		boolean successful = verifier.isValidCode(secret, otp);
-    		if(successful) {
-    			return Map.of("statuscode", 200, "message", "Successfull OTP Code validation..","username", user.getUsername());			
-    		}        	
-        }
- 		return Map.of("statuscode", 404, "message", "OTP Code is not valid..");			    	 
-        
-     } catch(Exception ex) {
- 		return Map.of("statuscode", 500, "message", ex.getMessage());			    	 
-     }
-	}	
 }

@@ -15,10 +15,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
 import com.springboot.java.react.jwtfilter.JwtAuthFilter;
 import com.springboot.java.react.services.JwtUserDetailsService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -31,7 +29,7 @@ public class SecurityConfig {
 	
 	@Autowired
 	private JwtAuthFilter jwtAuthFilter;
-			
+				
 	    @Bean
 		public UserDetailsService userDetailsService() {
 	    	return new JwtUserDetailsService();
@@ -49,15 +47,13 @@ public class SecurityConfig {
   	    	authenticationProvider.setPasswordEncoder(passwordEncoder());
   	    	return authenticationProvider;
   	   }
-
- 	    
+  	   
  	    @Bean
  	    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
- 	    			return http.csrf().disable()
- 	    			.authorizeHttpRequests().requestMatchers("/**")
+			return http.cors().and().csrf().disable()
+ 	    			.authorizeHttpRequests()
+ 	    			.requestMatchers("/**")
  	    			.permitAll()
- 	    			.anyRequest()
- 	    			.authenticated()
  	                .and() 	                
  	                .sessionManagement()
  	                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) 	                
@@ -69,7 +65,7 @@ public class SecurityConfig {
  	                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
  	                .build();
  	    }
- 	     	     	   
+ 	    
  	   @Bean
  	   public AuthenticationManager authenticationmanager(AuthenticationConfiguration config) throws Exception {
  		   return config.getAuthenticationManager();
@@ -78,7 +74,5 @@ public class SecurityConfig {
 // 	  MAP IMAGES FROM STATIC FOLDER
  	  public void addResourceHandlers(final ResourceHandlerRegistry registry) {
  		    registry.addResourceHandler("/images/**","/users/**","/products/**","/qrcodes/**").addResourceLocations("file://" + System.getProperty("user.dir") + "/src/main/resources/static/images");
- 	  }
- 	  
- 	  
+ 	  } 	   	  	    	  
 }

@@ -1,15 +1,20 @@
 package com.springboot.java.react.models.dto;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.springboot.java.react.entities.Role;
 
 public class UserDto {
 
     private int id;
     private String username;
     private String password;
+    private List<Role> roles = new ArrayList<>();
+    
     private int isactivated;
     private int isblocked;
-    private String roles;
     private String lastname;
     private String firstname;
     private String emailadd;
@@ -50,12 +55,6 @@ public class UserDto {
 	}
 	public void setIsblocked(int isblocked) {
 		this.isblocked = isblocked;
-	}
-	public String getRoles() {
-		return roles;
-	}
-	public void setRoles(String roles) {
-		this.roles = roles;
 	}
 	public String getLastname() {
 		return lastname;
@@ -116,6 +115,12 @@ public class UserDto {
 	}
 	public void setSecretkey(String secretkey) {
 		this.secretkey = secretkey;
+	}
+	public List<Role> getRoles() {
+		return roles;
+	}
+	public void setRoles(List<Role> roles) {
+		this.roles = roles;
 	}
 	
 }
