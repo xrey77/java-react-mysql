@@ -13,18 +13,14 @@ public class Role
     private Integer id;
 
     private String name;
-    @ManyToMany(mappedBy = "roles")
-    private Collection<Users> users;
-	
-	  @ManyToMany
-	    @JoinTable(
-	        name = "roles_privileges", 
-	        joinColumns = @JoinColumn(
-	          name = "role_id", referencedColumnName = "id"), 
-	        inverseJoinColumns = @JoinColumn(
-	          name = "privilege_id", referencedColumnName = "id"))	
-    
-    private Collection<Privilege> privileges;
+	    
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
 
 	public String getName() {
 		return name;
@@ -33,14 +29,8 @@ public class Role
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	public Collection<Privilege> getPrivileges() {
-		return privileges;
-	}
-
-	public void setPrivileges(Collection<Privilege> privileges) {
-		this.privileges = privileges;
-	}
-
-
+	
+    @ManyToMany(mappedBy = "roles")
+    private Collection<Users> users;
+	
 }

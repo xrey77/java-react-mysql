@@ -27,7 +27,6 @@ import com.springboot.java.react.models.dto.UserDto;
 import com.springboot.java.react.services.FilesStorageService;
 import com.springboot.java.react.services.JwtService;
 import com.springboot.java.react.services.UserService;
-
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -60,13 +59,17 @@ public class UserController {
 
     @Autowired
     private JavaMailSender javaMailSender;
-            
+
+	@RolesAllowed("ROLE_ADMIN")	
 	@GetMapping(path="/getall")
-	@RolesAllowed("ROLE_ADMIN")		
     public Map<String, Object> list(HttpServletRequest req) {
-		String uname = (String) req.getSession().getAttribute("USERNAME");
-		
+
+		if(req.getSession().getAttribute("ROLENAME") != "ROLE_ADMIN") {
+			    return Map.of("statuscode", 403, "message", "UnAuthorized Access.");		  
+		}
+				
 		try {
+			String uname = (String) req.getSession().getAttribute("USERNAME");			
 			String authHeader = req.getHeader("Authorization");
 			String token = null;
 			String username = null;
@@ -103,13 +106,18 @@ public class UserController {
 		}	        
     }
 
-//	@PreAuthorize(value="hasRole('ADMIN')")
 //	@RolesAllowed("WRITE")
 //    @PreAuthorize("hasPermission("WRITE")
-//	@PreAuthorize(value="hasAuthority('ADMIN')")
-	@RolesAllowed("ROLE_ADMIN")		
+//	@PreAuthorize("hasAuthority('ADMIN')")
+//	@PreAuthorize(value="hasRole('ROLE_ADMIN')")
+	@RolesAllowed("ROLE_ADMIN")	
 	@GetMapping(path = "/getuserbyid/{id}")
     public Map<String, Object> getuser(@PathVariable Integer id, HttpServletRequest req) {
+
+		if(req.getSession().getAttribute("ROLENAME") != "ROLE_ADMIN") {
+		    return Map.of("statuscode", 403, "message", "UnAuthorized Access.");		  
+	  }
+		
 	  try {
 		String uname = (String) req.getSession().getAttribute("USERNAME");		
 		try {
@@ -163,11 +171,16 @@ public class UserController {
     }	
 	
     @PutMapping(path="/updateuserpassword/{id}")	
-	@RolesAllowed("ROLE_USER")	    
+	@RolesAllowed("ROLE_ADMIN")	    
     public Map<String, Object> updateuser(@RequestBody UserDto user, HttpServletRequest req, @PathVariable Integer id) {
-		String uname = (String) req.getSession().getAttribute("USERNAME");
+
+    	if(req.getSession().getAttribute("ROLENAME") != "ROLE_ADMIN") {
+		    return Map.of("statuscode", 403, "message", "UnAuthorized Access.");		  
+		}
+    	
 		Calendar cal = Calendar.getInstance();
 		try {
+			String uname = (String) req.getSession().getAttribute("USERNAME");
 			String authHeader = req.getHeader("Authorization");
 			String token = null;
 			String username = null;
@@ -220,8 +233,13 @@ public class UserController {
     @DeleteMapping("/deleteuser/{id}")
 	@RolesAllowed("ROLE_ADMIN")	    
     public Map<String, Object> delete(@PathVariable Integer id, HttpServletRequest req) {
-		String uname = (String) req.getSession().getAttribute("USERNAME");
+
+    	if(req.getSession().getAttribute("ROLENAME") != "ROLE_ADMIN") {
+		    return Map.of("statuscode", 403, "message", "UnAuthorized Access.");		  
+		}
+    	
 		try {
+			String uname = (String) req.getSession().getAttribute("USERNAME");
 			String authHeader = req.getHeader("Authorization");
 			String token = null;
 			String username = null;
@@ -272,8 +290,12 @@ public class UserController {
     }	
 	
     @PutMapping(path="/uploaduserpicture/{id}")
-	@RolesAllowed("ROLE_USER")	    
-    public Map<String, Object> uploadpicture(@RequestParam("userpic") MultipartFile file, @PathVariable Integer id) throws IOException  {
+	@RolesAllowed("ROLE_ADMIN")	    
+    public Map<String, Object> uploadpicture(@RequestParam("userpic") MultipartFile file, @PathVariable Integer id, HttpServletRequest req) throws IOException  {
+
+    	if(req.getSession().getAttribute("ROLENAME") != "ROLE_ADMIN") {
+		    return Map.of("statuscode", 403, "message", "UnAuthorized Access.");		  
+		}
 
 	    try {
 	    	String newfile= "00" + id.toString() + ".jpeg";	    	
@@ -297,8 +319,13 @@ public class UserController {
 // **	    "isactivated": "0"
 // **	}	
     @PutMapping(path="/activateotp/{id}")
-	@RolesAllowed("ROLE_USER")	    
-    public Map<String, Object> enableAuthenticator(@RequestBody UserDto user, @PathVariable Integer id) {
+	@RolesAllowed("ROLE_ADMIN")	    
+    public Map<String, Object> enableAuthenticator(@RequestBody UserDto user, @PathVariable Integer id, HttpServletRequest req) {
+    	
+		if(req.getSession().getAttribute("ROLENAME") != "ROLE_ADMIN") {
+		    return Map.of("statuscode", 403, "message", "UnAuthorized Access.");		  
+		}
+    	
 		try {
 			UserDto eUser = userService.getUser(id);
 			if (eUser != null) {

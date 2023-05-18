@@ -48,15 +48,22 @@ public class UserService {
     public UserDto addUser(UserDto userDto) {    	
     	userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
-        Role role = roleRepository.findByName("ROLE_USER");
-        if(role == null){
-            role = checkRoleExist();
+        Role role = roleRepository.findByName("ROLE_ADMIN");
+        if(role == null) {
+        	checkRoleExist("ROLE_ADMIN");
+        } else {
+        	checkRoleExist("ROLE_USER");        	
         }
         userDto.setRoles(Arrays.asList(role));    	
         userDto.setPicture("http://localhost:8085/images/user.jpg");
     	Users user = mapToEntity(userDto);
     	Users newUser = userRepository.save(user);
+
     	UserDto userResponse = mapToDto(newUser);
+    	
+	    userDto.setRoles(Arrays.asList(role));    	
+	  	userRepository.save(user);
+    	
     	return userResponse;    	
     }    
     
@@ -113,9 +120,15 @@ public class UserService {
 //    	   return role;
 //    	}    
 
-    private Role checkRoleExist(){
-        Role role = new Role();
-        role.setName("ROLE_USER");
-        return roleRepository.save(role);
+    private void checkRoleExist(String rolename){
+//    	Optional<Users> user = userRepository.getUserByUsername(username);    	
+//    	if(user != null) {
+    		Role data = new Role();
+//    		data.setId(user.get().getId());
+    	    data.setName(rolename);
+    	    roleRepository.save(data);
+//    	    return true;    	        
+//    	}
+//    	return false;
     }    
 }

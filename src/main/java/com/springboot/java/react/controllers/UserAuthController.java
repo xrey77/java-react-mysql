@@ -1,10 +1,11 @@
 package com.springboot.java.react.controllers;
 
-import java.util.Optional;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
+
 import org.apache.commons.codec.binary.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
@@ -24,9 +25,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.springboot.java.react.entities.Role;
 import com.springboot.java.react.entities.Users;
 import com.springboot.java.react.models.UserModel;
 import com.springboot.java.react.models.dto.UserDto;
+import com.springboot.java.react.repositories.RoleRepository;
 import com.springboot.java.react.services.JwtService;
 import com.springboot.java.react.services.JwtUserDetailsService;
 import com.springboot.java.react.services.UserService;
@@ -64,6 +67,10 @@ public class UserAuthController {
 //	private JwtUserDetailsService jwtUserDetailsService;
 	
 	@Autowired
+	private RoleRepository roleRepository;
+	
+	
+	@Autowired
 	private PasswordEncoder passwordEncoder;
 
 	@Autowired
@@ -74,9 +81,8 @@ public class UserAuthController {
 		
 		try {
           Optional<Users> xuser = userService.getUserName(user.getUsername());          
-          if (xuser != null) {        	          	  
-//  		    Role xroles = roleRepository.getUserroleByUsername(xuser.get().getId());
-//  		    System.out.println("xroles : " + xroles);
+          if (xuser != null) {        	   
+        	  
         	  if (xuser.get().getIsactivated() == 0) {
         		    return Map.of("statuscode", 403, "message","Please check your Email inbox, and activate your account.");
         	  }
@@ -91,14 +97,19 @@ public class UserAuthController {
         		  SecurityContext context = SecurityContextHolder.createEmptyContext(); 
         		  context.setAuthentication(authentication); 
         		  SecurityContextHolder.setContext(context);
-        	        
-        		  
+        		    session.removeAttribute("USERNAME");
         		    session.setAttribute("USERNAME", user.getUsername());
+        		    
+          		    Role rolename = roleRepository.findById(xuser.get().getId());
+      		    String userrole = rolename.getName();
+      		    session.setAttribute("ROLENAME", userrole);
+          		    
+//          		    String userrole = rolename.getName().substring(5);
         		    
 //                  	final UserDetails userx = jwtUserDetailsService.loadUserByUsername(user.getUsername());
                   	String pwd = passwordEncoder.encode(user.getPassword());
          	    	UserDetails userx = User.builder()
-     	    		.username("Reynald")
+     	    		.username(user.getUsername())
      	    		.password(pwd)
      	    		.roles("ADMIN")
      	    		.build();                  	
