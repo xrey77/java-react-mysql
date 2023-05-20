@@ -17,14 +17,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import com.springboot.java.react.jwtfilter.JwtAuthFilter;
 import com.springboot.java.react.services.JwtUserDetailsService;
-import lombok.RequiredArgsConstructor;
+//import lombok.RequiredArgsConstructor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 
+//@Configuration
+//@EnableWebSecurity
+//@EnableMethodSecurity
+//@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
-@RequiredArgsConstructor
+@EnableMethodSecurity(prePostEnabled = false, securedEnabled = true)
 public class SecurityConfig {
 	
 	@Autowired
@@ -47,15 +50,40 @@ public class SecurityConfig {
   	    	authenticationProvider.setPasswordEncoder(passwordEncoder());
   	    	return authenticationProvider;
   	   }
-  	   
- 	    @Bean
+ 	    @SuppressWarnings("removal")
+		@Bean
  	    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-			return http.cors().and().csrf().disable()
- 	    			.authorizeHttpRequests()
- 	    			.requestMatchers("/**")
- 	    			.permitAll()   		
- 	                .anyRequest()
- 	    			.authenticated()
+			return http
+					.authorizeHttpRequests()
+ 	    			.requestMatchers("/**",
+ 	    					"/users/**",
+ 	    					"/images/**",
+ 	    					"/products/**",
+ 	    					"/api-docs/**", 	    					
+ 	    			        "/swagger-resources",
+ 	    		            "/swagger-resources/**",
+ 	    		            "/configuration/ui",
+ 	    		            "/configuration/security",
+ 	    		            "/context-path/**",
+ 	    		            "/context-path/v3/**",
+ 	    		            "/swagger-ui.html",
+ 	    		            "/swagger-ui/index.html",
+ 	    		            "/webjars/**",
+ 	    		            "/v3/api-docs",
+ 	    		            "/v3/api-docs/**",
+ 	    		            "/api/public/**",
+ 	    		            "/api/public/authenticate",
+ 	    		            "/actuator/*",
+ 	    		            "/swagger-ui/**" 	    					 	    					
+ 	    					)
+ 	    			.permitAll()
+ 	    			.requestMatchers("/api/v1/products/**").permitAll()
+ 	    			.requestMatchers("/api/v1/productusers/**").permitAll()
+ 	    			.requestMatchers("/api/v1/productadmin/**").permitAll() 	    			
+// 	    			.requestMatchers("/api/vi/users/**")
+// 	    			.hasRole("ADMIN")
+// 	                .anyRequest()
+// 	    			.authenticated()
  	                .and()
  	                .sessionManagement()
  	                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) 	                
