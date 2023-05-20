@@ -44,7 +44,8 @@ public class OpenAPIConfig {
         .contact(contact)
         .description("This API exposes endpoints to manage and test functionality.").termsOfService("http://localhost:8085/terms")
         .license(mitLicense);
+    return new OpenAPI().info(info);
 
-    return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
+//    return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
   }
 }
